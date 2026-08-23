@@ -1,6 +1,7 @@
 namespace SpriteKind {
     export const Show = SpriteKind.create()
     export const fallingCrate = SpriteKind.create()
+    export const showCutscene = SpriteKind.create()
 }
 /**
  * FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
@@ -9,6 +10,140 @@ namespace SpriteKind {
  * 
  * Level 2
  */
+function title () {
+    titleScreen = true
+    timer.background(function () {
+        pressA = false
+        music.play(music.createSong(assets.song`TITLE intro`), music.PlaybackMode.UntilDone)
+        pressA = true
+        music.play(music.createSong(assets.song`TITLE`), music.PlaybackMode.LoopingInBackground)
+    })
+    fallHit = false
+    scene.setBackgroundColor(8)
+    tiles.setCurrentTilemap(tilemap`cutsceneLevel`)
+    cutscenePlayer = sprites.create(assets.image`Player_Idle_image`, SpriteKind.showCutscene)
+    tiles.placeOnTile(cutscenePlayer, tiles.getTileLocation(0, 10))
+    animation.runImageAnimation(
+    cutscenePlayer,
+    assets.animation`Player_Run`,
+    50,
+    true
+    )
+    scene.cameraFollowSprite(cutscenePlayer)
+    cutscenePlayer.vx = 150
+    cutscenePlayer.ay = 400
+    timer.after(1500, function () {
+        cutscenePlayer.fx = 400
+        timer.after(200, function () {
+            animation.runImageAnimation(
+            cutscenePlayer,
+            assets.animation`Cutscene_Skid`,
+            200,
+            false
+            )
+            timer.after(200, function () {
+                animation.runImageAnimation(
+                cutscenePlayer,
+                assets.animation`Player_Idle`,
+                200,
+                true
+                )
+                timer.after(800, function () {
+                    animation.runImageAnimation(
+                    cutscenePlayer,
+                    assets.animation`Cutscene_LookUp`,
+                    50,
+                    false
+                    )
+                    newSprite = sprites.create(img`
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        . . . . . . . . . . . . . . . . 
+                        `, SpriteKind.Show)
+                    newSprite.setPosition(cutscenePlayer.x, cutscenePlayer.y)
+                    scene.cameraFollowSprite(newSprite)
+                    newSprite.vy = -60
+                    timer.after(500, function () {
+                        newSprite.vy = 0
+                        sprites.destroy(newSprite)
+                        scene.cameraFollowSprite(null)
+                        timer.after(1200, function () {
+                            animation.runImageAnimation(
+                            cutscenePlayer,
+                            assets.animation`Player_RevDash`,
+                            75,
+                            true
+                            )
+                            timer.after(500, function () {
+                                animation.runImageAnimation(
+                                cutscenePlayer,
+                                assets.animation`Player_Jump`,
+                                100,
+                                false
+                                )
+                                cutscenePlayer.vy = -200
+                                timer.after(500, function () {
+                                    animation.runImageAnimation(
+                                    cutscenePlayer,
+                                    assets.animation`Player_Hurt`,
+                                    100,
+                                    true
+                                    )
+                                    cutscenePlayer.vx = -100
+                                    cutscenePlayer.fx = 100
+                                    fallHit = true
+                                    timer.background(function () {
+                                        pauseUntil(() => fallHit == false)
+                                        timer.after(2500, function () {
+                                            animation.runImageAnimation(
+                                            cutscenePlayer,
+                                            assets.animation`Player_Idle`,
+                                            200,
+                                            true
+                                            )
+                                            timer.after(1500, function () {
+                                                animation.runImageAnimation(
+                                                cutscenePlayer,
+                                                assets.animation`Player_RevDash`,
+                                                75,
+                                                true
+                                                )
+                                                timer.after(1000, function () {
+                                                    cutscenePlayer.vx = 250
+                                                    cutscenePlayer.fx = 0
+                                                    animation.runImageAnimation(
+                                                    cutscenePlayer,
+                                                    assets.animation`Player_Run`,
+                                                    50,
+                                                    true
+                                                    )
+                                                    cutscenePlayer.setFlag(SpriteFlag.AutoDestroy, true)
+                                                })
+                                            })
+                                        })
+                                    })
+                                })
+                            })
+                        })
+                    })
+                })
+            })
+        })
+    })
+}
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, location) {
     tiles.setTileAt(location, assets.tile`myTile8`)
     projectile = sprites.createProjectileFromSprite(assets.image`POW`, playerCharacter, 0, 0)
@@ -16,7 +151,7 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, l
     music.play(music.createSoundEffect(WaveShape.Noise, 1162, 1607, 255, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
     projectile.setFlag(SpriteFlag.AutoDestroy, false)
     projectile.setFlag(SpriteFlag.DestroyOnWall, true)
-    poofs(projectile, false, 4)
+    poofs(projectile, false, 4, 8)
 })
 scene.onHitWall(SpriteKind.Player, function (sprite, location) {
     if (playerCharacter.isHittingTile(CollisionDirection.Left) || playerCharacter.isHittingTile(CollisionDirection.Right)) {
@@ -63,6 +198,35 @@ function createRecolor (anim: Image[]) {
     }
     return tempList
 }
+scene.onHitWall(SpriteKind.showCutscene, function (sprite, location) {
+    if (fallHit == true) {
+        if (sprite.isHittingTile(CollisionDirection.Bottom)) {
+            fallHit = false
+            animation.runImageAnimation(
+            sprite,
+            assets.animation`Cutscene_Skid0`,
+            500,
+            false
+            )
+            timer.after(750, function () {
+                animation.runImageAnimation(
+                sprite,
+                assets.animation`Player_Idle`,
+                200,
+                true
+                )
+            })
+            timer.after(1000, function () {
+                animation.runImageAnimation(
+                sprite,
+                assets.animation`Cutscene_LookUp`,
+                50,
+                false
+                )
+            })
+        }
+    }
+})
 function setupAnim () {
     idleRight = assets.animation`Player_Idle`
     idleLeft = createFlipped(assets.animation`Player_Idle`)
@@ -180,17 +344,29 @@ function setupAnim () {
     }
 }
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (playerControl == true) {
-        if (runningUp == false) {
-            if (playerCharacter.vy == 0) {
-                playerCharacter.vy = -125
-                music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+    if (titleScreen == false) {
+        if (playerControl == true) {
+            if (runningUp == false) {
+                if (playerCharacter.vy == 0) {
+                    playerCharacter.vy = -125
+                    music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                }
+            } else {
+                music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                runningUp = false
+                playerCharacter.ay = 400
+                playerCharacter.vx = direction * -100
             }
-        } else {
-            music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
-            runningUp = false
-            playerCharacter.ay = 400
-            playerCharacter.vx = direction * -100
+        }
+    } else {
+        if (pressA) {
+            titleScreen = false
+            music.stopAllSounds()
+            music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 255, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+            music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 115, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+            music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 53, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+            music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 20, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
+            Start(1)
         }
     }
 })
@@ -263,14 +439,24 @@ function deleteEVERYTHING () {
     sprites.destroyAllSpritesOfKind(SpriteKind.Player)
     sprites.destroyAllSpritesOfKind(SpriteKind.Text)
     sprites.destroyAllSpritesOfKind(SpriteKind.Show)
+    sprites.destroyAllSpritesOfKind(SpriteKind.showCutscene)
+    sprites.destroyAllSpritesOfKind(SpriteKind.fallingCrate)
     sprites.destroyAllSpritesOfKind(SpriteKind.Enemy)
     sprites.destroyAllSpritesOfKind(SpriteKind.Projectile)
 }
-function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
+sprites.onDestroyed(SpriteKind.showCutscene, function (sprite) {
+    timer.after(2000, function () {
+        NEORUSH = sprites.create(assets.image`NEORUSH_image`, SpriteKind.Show)
+        tiles.placeOnTile(NEORUSH, tiles.getTileLocation(15, 6))
+        NEORUSH.setScale(2, ScaleAnchor.Middle)
+        poofs(NEORUSH, false, 20, 45)
+    })
+})
+function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number, distance: number) {
     for (let index = 0; index < amount; index++) {
         timer.after(randint(0, 200), function () {
             poofPoof = sprites.create(assets.image`pof`, SpriteKind.Show)
-            poofPoof.setPosition(sprite.x + randint(-8, 8), sprite.y + randint(-8, 8))
+            poofPoof.setPosition(sprite.x + randint(distance * -1, distance), sprite.y + randint(distance * -1, distance))
             if (expoldeTrue) {
                 animation.runImageAnimation(
                 poofPoof,
@@ -293,7 +479,7 @@ function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
     }
 }
 sprites.onDestroyed(SpriteKind.Projectile, function (sprite) {
-    poofs(sprite, true, 4)
+    poofs(sprite, true, 4, 8)
     tiles.setWallAt(sprite.tilemapLocation().getNeighboringLocation(CollisionDirection.Right), false)
     tiles.setTileAt(sprite.tilemapLocation().getNeighboringLocation(CollisionDirection.Right), assets.tile`transparency16`)
     scene.cameraShake(4, 500)
@@ -332,7 +518,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
                     )
                 }
                 timer.after(500, function () {
-                    poofs(otherSprite, true, 4)
+                    poofs(otherSprite, true, 4, 8)
                     sprites.destroy(otherSprite)
                 })
             } else {
@@ -354,6 +540,7 @@ let textSprite: TextSprite = null
 let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
+let NEORUSH: Sprite = null
 let groundbug: Sprite = null
 let health = 0
 let timeFromStart = 0
@@ -382,13 +569,18 @@ let Crate: Sprite = null
 let direction = 0
 let playerCharacter: Sprite = null
 let projectile: Sprite = null
+let newSprite: Sprite = null
+let cutscenePlayer: Sprite = null
+let fallHit = false
+let pressA = false
+let titleScreen = false
 let playerControl = false
 namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 240
     export const ARCADE_SCREEN_HEIGHT = 160
 }
 playerControl = false
-Start(1)
+title()
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
