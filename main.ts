@@ -189,8 +189,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 function Start () {
     playerControl = true
-    spriteutils.setLifeImage(assets.image`life`)
-    info.setLife(4)
+    health = 4
     playerCharacter = sprites.create(assets.image`Player_Idle_image`, SpriteKind.Player)
     scene.setBackgroundColor(8)
     direction = 1
@@ -220,14 +219,7 @@ function Start () {
         })
     }
 }
-scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
-    if (sprite.isHittingTile(CollisionDirection.Bottom)) {
-        tiles.setTileAt(tiles.getTileLocation(location.column, location.row - 1), assets.tile`myTile9`)
-        tiles.setWallAt(tiles.getTileLocation(location.column, location.row - 1), true)
-        sprites.destroy(sprite)
-    }
-})
-info.onLifeZero(function () {
+function die () {
     music.stopAllSounds()
     playerControl = false
     characterAnimations.setCharacterAnimationsEnabled(playerCharacter, false)
@@ -249,6 +241,13 @@ info.onLifeZero(function () {
             game.reset()
         })
     })
+}
+scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
+    if (sprite.isHittingTile(CollisionDirection.Bottom)) {
+        tiles.setTileAt(tiles.getTileLocation(location.column, location.row - 1), assets.tile`myTile9`)
+        tiles.setWallAt(tiles.getTileLocation(location.column, location.row - 1), true)
+        sprites.destroy(sprite)
+    }
 })
 function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
     for (let index = 0; index < amount; index++) {
@@ -324,15 +323,20 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
                 flinging = true
                 sprite.vx = sprite.vx + direction * -200
                 sprite.vy = -75
-                info.changeLifeBy(-1)
+                health += -1
+                if (health < 1) {
+                    die()
+                }
             }
         }
     }
 })
+let textSprite: TextSprite = null
 let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
 let groundbug: Sprite = null
+let health = 0
 let runningUp = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
@@ -523,5 +527,13 @@ game.onUpdate(function () {
             buggerBehaviour.vx = -20
             sprites.setDataNumber(buggerBehaviour, "direction", -1)
         }
+    }
+    sprites.destroy(textSprite)
+    if (!(spriteutils.isDestroyed(playerCharacter))) {
+        textSprite = textsprite.create("[" + health + "]", 0, 10)
+        textSprite.setOutline(1, 1)
+        textSprite.setIcon(assets.image`health`)
+        textSprite.setPosition(scene.cameraProperty(CameraProperty.X) - 86, scene.cameraProperty(CameraProperty.Y) - 64)
+        textSprite.setFlag(SpriteFlag.Ghost, true)
     }
 })
