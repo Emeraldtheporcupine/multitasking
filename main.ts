@@ -69,6 +69,8 @@ function setupAnim () {
     upLeft = createFlipped(assets.animation`Player_Jump`)
     hurtRight = assets.animation`Player_Hurt`
     hurtLeft = createFlipped(assets.animation`Player_Hurt`)
+    crouchRight = assets.animation`Player_Crouch`
+    crouchLeft = createFlipped(assets.animation`Player_Crouch`)
     crawlerRight = assets.animation`Crawler`
     crawlerLeft = createFlipped(assets.animation`Crawler`)
     characterAnimations.loopFrames(
@@ -142,6 +144,18 @@ function setupAnim () {
     hurtLeft,
     100,
     characterAnimations.rule(Predicate.FacingDown, Predicate.FacingLeft)
+    )
+    characterAnimations.loopFrames(
+    playerCharacter,
+    crouchRight,
+    100,
+    characterAnimations.rule(Predicate.MovingDown, Predicate.FacingRight)
+    )
+    characterAnimations.loopFrames(
+    playerCharacter,
+    crouchLeft,
+    100,
+    characterAnimations.rule(Predicate.MovingDown, Predicate.FacingLeft)
     )
     for (let groundBuggers of sprites.allOfKind(SpriteKind.Enemy)) {
         characterAnimations.loopFrames(
@@ -284,6 +298,8 @@ let poofPoof: Sprite = null
 let runningUp = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
+let crouchLeft: Image[] = []
+let crouchRight: Image[] = []
 let hurtLeft: Image[] = []
 let hurtRight: Image[] = []
 let upLeft: Image[] = []
@@ -345,34 +361,42 @@ game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
             if (controller.right.isPressed()) {
-                direction = 1
-                if (runningUp == false) {
-                    if (playerCharacter.vx > 100) {
-                        playerCharacter.vx += 5
+                if (!(controller.down.isPressed())) {
+                    direction = 1
+                    if (runningUp == false) {
+                        if (playerCharacter.vx > 100) {
+                            playerCharacter.vx += 5
+                        } else {
+                            playerCharacter.vx += 3
+                        }
                     } else {
-                        playerCharacter.vx += 3
+                        if (playerCharacter.vy < -100) {
+                            playerCharacter.vy += -5
+                        } else {
+                            playerCharacter.vy += -3
+                        }
                     }
                 } else {
-                    if (playerCharacter.vy < -100) {
-                        playerCharacter.vy += -5
-                    } else {
-                        playerCharacter.vy += -3
-                    }
+                    playerCharacter.vx += playerCharacter.vx * -0.1
                 }
             } else if (controller.left.isPressed()) {
-                direction = -1
-                if (runningUp == false) {
-                    if (playerCharacter.vx < -100) {
-                        playerCharacter.vx += -5
+                if (!(controller.down.isPressed())) {
+                    direction = -1
+                    if (runningUp == false) {
+                        if (playerCharacter.vx < -100) {
+                            playerCharacter.vx += -5
+                        } else {
+                            playerCharacter.vx += -2
+                        }
                     } else {
-                        playerCharacter.vx += -2
+                        if (playerCharacter.vy < -100) {
+                            playerCharacter.vy += -5
+                        } else {
+                            playerCharacter.vy += -2
+                        }
                     }
                 } else {
-                    if (playerCharacter.vy < -100) {
-                        playerCharacter.vy += -5
-                    } else {
-                        playerCharacter.vy += -2
-                    }
+                    playerCharacter.vx += playerCharacter.vx * -0.1
                 }
             } else {
                 if (runningUp == false) {
@@ -383,10 +407,12 @@ game.onUpdate(function () {
                     playerCharacter.vy += playerCharacter.vy * -0.1
                 }
             }
-            if (controller.right.isPressed() && playerCharacter.vx < 0) {
-                playerCharacter.vx += 10
-            } else if (controller.left.isPressed() && playerCharacter.vx > 0) {
-                playerCharacter.vx += -10
+            if (!(controller.down.isPressed())) {
+                if (controller.right.isPressed() && playerCharacter.vx < 0) {
+                    playerCharacter.vx += 10
+                } else if (controller.left.isPressed() && playerCharacter.vx > 0) {
+                    playerCharacter.vx += -10
+                }
             }
         }
         if (playerCharacter.vx > 200) {
@@ -412,10 +438,18 @@ game.onUpdate(function () {
                 } else if (playerCharacter.vx < -101) {
                     characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft, Predicate.FacingLeft))
                 } else {
-                    if (direction == 1) {
-                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight))
+                    if (controller.down.isPressed()) {
+                        if (direction == 1) {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingDown, Predicate.FacingRight))
+                        } else {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingDown, Predicate.FacingLeft))
+                        }
                     } else {
-                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft))
+                        if (direction == 1) {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight))
+                        } else {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft))
+                        }
                     }
                 }
             } else {
