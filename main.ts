@@ -34,6 +34,7 @@ scene.onHitWall(SpriteKind.Player, function (sprite, location) {
         }
     }
     if (sprite.isHittingTile(CollisionDirection.Bottom)) {
+        invincible = false
         flinging = false
     }
 })
@@ -66,6 +67,8 @@ function setupAnim () {
     runUpLeft = createFlipped(assets.animation`Player_RunUP`)
     upRight = assets.animation`Player_Jump`
     upLeft = createFlipped(assets.animation`Player_Jump`)
+    hurtRight = assets.animation`Player_Hurt`
+    hurtLeft = createFlipped(assets.animation`Player_Hurt`)
     crawlerRight = assets.animation`Crawler`
     crawlerLeft = createFlipped(assets.animation`Crawler`)
     characterAnimations.loopFrames(
@@ -128,6 +131,18 @@ function setupAnim () {
     50,
     characterAnimations.rule(Predicate.MovingUp, Predicate.MovingLeft)
     )
+    characterAnimations.loopFrames(
+    playerCharacter,
+    hurtRight,
+    100,
+    characterAnimations.rule(Predicate.FacingDown, Predicate.FacingRight)
+    )
+    characterAnimations.loopFrames(
+    playerCharacter,
+    hurtLeft,
+    100,
+    characterAnimations.rule(Predicate.FacingDown, Predicate.FacingLeft)
+    )
     for (let groundBuggers of sprites.allOfKind(SpriteKind.Enemy)) {
         characterAnimations.loopFrames(
         groundBuggers,
@@ -144,16 +159,18 @@ function setupAnim () {
     }
 }
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
-    if (runningUp == false) {
-        if (playerCharacter.vy == 0) {
-            playerCharacter.vy = -125
+    if (playerControl == true) {
+        if (runningUp == false) {
+            if (playerCharacter.vy == 0) {
+                playerCharacter.vy = -125
+                music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+            }
+        } else {
             music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+            runningUp = false
+            playerCharacter.ay = 400
+            playerCharacter.vx = direction * -100
         }
-    } else {
-        music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
-        runningUp = false
-        playerCharacter.ay = 400
-        playerCharacter.vx = direction * -100
     }
 })
 scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
@@ -162,6 +179,9 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
         tiles.setWallAt(tiles.getTileLocation(location.column, location.row - 1), true)
         sprites.destroy(sprite)
     }
+})
+info.onLifeZero(function () {
+    playerControl = false
 })
 function poofs (sprite: Sprite, expoldeTrue: boolean) {
     for (let index = 0; index < 4; index++) {
@@ -205,33 +225,41 @@ sprites.onDestroyed(SpriteKind.Projectile, function (sprite) {
     })
 })
 sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSprite) {
-    if (sprite.y < otherSprite.y && sprite.vy > 0) {
-        otherSprite.setKind(SpriteKind.Show)
-        otherSprite.vx = 0
-        characterAnimations.setCharacterAnimationsEnabled(otherSprite, false)
-        characterAnimations.clearCharacterState(otherSprite)
-        sprite.vy = -50
-        if (sprites.readDataNumber(otherSprite, "direction") == 1) {
-            animation.runImageAnimation(
-            otherSprite,
-            assets.animation`bugSQUICH`,
-            200,
-            false
-            )
-        } else {
-            animation.runImageAnimation(
-            otherSprite,
-            createFlipped(assets.animation`bugSQUICH`),
-            200,
-            false
-            )
+    if (playerControl == true) {
+        if (invincible == false) {
+            if (sprite.y < otherSprite.y && sprite.vy > 0) {
+                otherSprite.setKind(SpriteKind.Show)
+                otherSprite.vx = 0
+                characterAnimations.setCharacterAnimationsEnabled(otherSprite, false)
+                characterAnimations.clearCharacterState(otherSprite)
+                sprite.vy = -50
+                if (sprites.readDataNumber(otherSprite, "direction") == 1) {
+                    animation.runImageAnimation(
+                    otherSprite,
+                    assets.animation`bugSQUICH`,
+                    200,
+                    false
+                    )
+                } else {
+                    animation.runImageAnimation(
+                    otherSprite,
+                    createFlipped(assets.animation`bugSQUICH`),
+                    200,
+                    false
+                    )
+                }
+                timer.after(500, function () {
+                    poofs(otherSprite, true)
+                    sprites.destroy(otherSprite)
+                })
+            } else {
+                invincible = true
+                flinging = true
+                sprite.vx = sprite.vx + direction * -200
+                sprite.vy = -75
+                info.changeLifeBy(-1)
+            }
         }
-        timer.after(500, function () {
-            poofs(otherSprite, true)
-            sprites.destroy(otherSprite)
-        })
-    } else {
-    	
     }
 })
 let cratefall: Sprite = null
@@ -240,6 +268,8 @@ let poofPoof: Sprite = null
 let runningUp = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
+let hurtLeft: Image[] = []
+let hurtRight: Image[] = []
 let upLeft: Image[] = []
 let upRight: Image[] = []
 let runUpLeft: Image[] = []
@@ -255,15 +285,18 @@ let tempList: Image[] = []
 let Crate: Sprite = null
 let projectile: Sprite = null
 let groundbug: Sprite = null
+let invincible = false
 let flinging = false
 let direction = 0
 let playerCharacter: Sprite = null
+let playerControl = false
 namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 240
     export const ARCADE_SCREEN_HEIGHT = 160
 }
 spriteutils.setLifeImage(assets.image`life`)
 info.setLife(4)
+playerControl = true
 playerCharacter = sprites.create(assets.image`Player_Idle_image`, SpriteKind.Player)
 scene.setBackgroundColor(8)
 direction = 1
@@ -277,6 +310,7 @@ timer.background(function () {
     music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
     music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
 })
+invincible = false
 for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
     groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
     sprites.setDataNumber(groundbug, "direction", -1)
@@ -286,108 +320,120 @@ for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
 }
 setupAnim()
 game.onUpdate(function () {
-    if (controller.right.isPressed()) {
-        direction = 1
-        if (runningUp == false) {
-            if (playerCharacter.vx > 100) {
-                playerCharacter.vx += 5
+    if (playerControl == true) {
+        if (invincible == false) {
+            if (controller.right.isPressed()) {
+                direction = 1
+                if (runningUp == false) {
+                    if (playerCharacter.vx > 100) {
+                        playerCharacter.vx += 5
+                    } else {
+                        playerCharacter.vx += 3
+                    }
+                } else {
+                    if (playerCharacter.vy < -100) {
+                        playerCharacter.vy += -5
+                    } else {
+                        playerCharacter.vy += -3
+                    }
+                }
+            } else if (controller.left.isPressed()) {
+                direction = -1
+                if (runningUp == false) {
+                    if (playerCharacter.vx < -100) {
+                        playerCharacter.vx += -5
+                    } else {
+                        playerCharacter.vx += -2
+                    }
+                } else {
+                    if (playerCharacter.vy < -100) {
+                        playerCharacter.vy += -5
+                    } else {
+                        playerCharacter.vy += -2
+                    }
+                }
             } else {
-                playerCharacter.vx += 3
-            }
-        } else {
-            if (playerCharacter.vy < -100) {
-                playerCharacter.vy += -5
-            } else {
-                playerCharacter.vy += -3
+                if (runningUp == false) {
+                    if (flinging == false) {
+                        playerCharacter.vx += playerCharacter.vx * -0.1
+                    }
+                } else {
+                    playerCharacter.vy += playerCharacter.vy * -0.1
+                }
             }
         }
-    } else if (controller.left.isPressed()) {
-        direction = -1
-        if (runningUp == false) {
-            if (playerCharacter.vx < -100) {
-                playerCharacter.vx += -5
-            } else {
-                playerCharacter.vx += -2
-            }
-        } else {
-            if (playerCharacter.vy < -100) {
-                playerCharacter.vy += -5
-            } else {
-                playerCharacter.vy += -2
-            }
+        if (playerCharacter.vx > 200) {
+            playerCharacter.vx = 200
+        } else if (playerCharacter.vx < -200) {
+            playerCharacter.vx = -200
         }
-    } else {
-        if (runningUp == false) {
-            if (flinging == false) {
-                playerCharacter.vx += playerCharacter.vx * -0.1
-            }
-        } else {
-            playerCharacter.vy += playerCharacter.vy * -0.1
+        if (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(playerCharacter.tilemapLocation().column + 1, playerCharacter.tilemapLocation().row))) && direction == 1 || playerCharacter.vy > -90 && runningUp == true) {
+            runningUp = false
+            playerCharacter.ay = 400
+        } else if (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(playerCharacter.tilemapLocation().column - 1, playerCharacter.tilemapLocation().row))) && direction == -1 || playerCharacter.vy > -90 && runningUp == true) {
+            runningUp = false
+            playerCharacter.ay = 400
         }
-    }
-    if (playerCharacter.vx > 200) {
-        playerCharacter.vx = 200
-    } else if (playerCharacter.vx < -200) {
-        playerCharacter.vx = -200
-    }
-    if (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(playerCharacter.tilemapLocation().column + 1, playerCharacter.tilemapLocation().row))) && direction == 1 || playerCharacter.vy > -90 && runningUp == true) {
-        runningUp = false
-        playerCharacter.ay = 400
-    } else if (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(playerCharacter.tilemapLocation().column - 1, playerCharacter.tilemapLocation().row))) && direction == -1 || playerCharacter.vy > -90 && runningUp == true) {
-        runningUp = false
-        playerCharacter.ay = 400
-    }
-    if (playerCharacter.vy == 0) {
-        if (playerCharacter.vx > 10 && playerCharacter.vx < 101) {
-            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingRight))
-        } else if (playerCharacter.vx < -10 && playerCharacter.vx > -101) {
-            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft))
-        } else if (playerCharacter.vx > 100) {
-            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingRight, Predicate.FacingRight))
-        } else if (playerCharacter.vx < -101) {
-            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft, Predicate.FacingLeft))
+        if (invincible == false) {
+            if (playerCharacter.vy == 0) {
+                if (playerCharacter.vx > 10 && playerCharacter.vx < 101) {
+                    characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingRight))
+                } else if (playerCharacter.vx < -10 && playerCharacter.vx > -101) {
+                    characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft))
+                } else if (playerCharacter.vx > 100) {
+                    characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingRight, Predicate.FacingRight))
+                } else if (playerCharacter.vx < -101) {
+                    characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft, Predicate.FacingLeft))
+                } else {
+                    if (direction == 1) {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight))
+                    } else {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft))
+                    }
+                }
+            } else {
+                if (runningUp == false) {
+                    if (direction == 1) {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.FacingRight))
+                    } else {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.FacingLeft))
+                    }
+                } else {
+                    if (direction == 1) {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.MovingRight))
+                    } else {
+                        characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.MovingLeft))
+                    }
+                }
+            }
         } else {
             if (direction == 1) {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingRight))
+                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.FacingDown, Predicate.FacingRight))
             } else {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.NotMoving, Predicate.FacingLeft))
+                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.FacingDown, Predicate.FacingLeft))
             }
         }
-    } else {
-        if (runningUp == false) {
-            if (direction == 1) {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.FacingRight))
-            } else {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.FacingLeft))
-            }
-        } else {
-            if (direction == 1) {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.MovingRight))
-            } else {
-                characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingUp, Predicate.MovingLeft))
+        if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`whee`) && runningUp == false) {
+            if (playerCharacter.vx > 100 && playerCharacter.vy == 0) {
+                runningUp = true
+                playerCharacter.vy = playerCharacter.vx * -1
+                playerCharacter.ay = 0
+            } else if (playerCharacter.vy != 0) {
+                flinging = true
+                direction = -1
+                playerCharacter.vx = playerCharacter.vy * -2
             }
         }
-    }
-    if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`whee`) && runningUp == false) {
-        if (playerCharacter.vx > 100 && playerCharacter.vy == 0) {
-            runningUp = true
-            playerCharacter.vy = playerCharacter.vx * -1
-            playerCharacter.ay = 0
-        } else if (playerCharacter.vy != 0) {
-            flinging = true
-            direction = -1
-            playerCharacter.vx = playerCharacter.vy * -2
-        }
-    }
-    if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`wheeLEft`) && runningUp == false) {
-        if (playerCharacter.vx < -100 && playerCharacter.vy == 0) {
-            runningUp = true
-            playerCharacter.vy = playerCharacter.vx
-            playerCharacter.ay = 0
-        } else if (playerCharacter.vy != 0) {
-            flinging = true
-            direction = 1
-            playerCharacter.vx = playerCharacter.vy * 2
+        if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`wheeLEft`) && runningUp == false) {
+            if (playerCharacter.vx < -100 && playerCharacter.vy == 0) {
+                runningUp = true
+                playerCharacter.vy = playerCharacter.vx
+                playerCharacter.ay = 0
+            } else if (playerCharacter.vy != 0) {
+                flinging = true
+                direction = 1
+                playerCharacter.vx = playerCharacter.vy * 2
+            }
         }
     }
     for (let crateBehaviour of tiles.getTilesByType(assets.tile`myTile9`)) {
