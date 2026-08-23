@@ -768,11 +768,11 @@ game.onUpdate(function () {
         textSprite2.setOutline(1, 1)
         textSprite2.setIcon(assets.image`time`)
         if (currentTime < 10) {
-            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 99, scene.cameraProperty(CameraProperty.Y) - 74)
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 97, scene.cameraProperty(CameraProperty.Y) - 74)
         } else if (currentTime > 9 && currentTime < 100) {
-            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 96, scene.cameraProperty(CameraProperty.Y) - 74)
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 94, scene.cameraProperty(CameraProperty.Y) - 74)
         } else if (currentTime > 99) {
-            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 93, scene.cameraProperty(CameraProperty.Y) - 74)
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 91, scene.cameraProperty(CameraProperty.Y) - 74)
         }
         textSprite2.setFlag(SpriteFlag.Ghost, true)
     }
