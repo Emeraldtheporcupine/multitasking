@@ -674,25 +674,6 @@ f f 2 f f f 3 3 f 3 f 3 f 3 f 3
 . . . . . f f f f . . f f f f . 
 . . . . . f f . . . . f f . . . 
 `];
-            case "Player_Dead":
-            case "anim11":return [img`
-. . . e e e e e e e e e e . . . 
-. . e e e e e e e e e e e e . . 
-. . e e e e e e e e e e e e . . 
-. e e e e e e e e e e e e e . . 
-. e e e e e e e e e e e e e e . 
-. e e e d d e e e e d e e e e . 
-. e e d d d e d d e d d e e e . 
-. . e d d f d d d d f d d e . . 
-. f f d f d d d d d d f d f f . 
-. f f f e f f f f f f e f f f . 
-d d f . f e e e e e e f . f d d 
-d d . . f f e f f e f f . . d d 
-. f e . f e e f f e e f . e f . 
-. f f e e f f f f f f e e f f . 
-. f f f f f . . . . f f f f f . 
-. . f f f . . . . . . f f f . . 
-`];
             case "Player_Hurt":
             case "anim10":return [img`
 . . . e e e e e f f f . . . . . 
@@ -764,6 +745,25 @@ e f f f f f d e e e e e e e e .
 . . e f e f d d d e e e f d d f 
 . e f f e e d d d e e e d d d f 
 f f f f f f f f d e d d f f f . 
+`];
+            case "Player_Dead":
+            case "anim11":return [img`
+. . . e e e e e e e e e e . . . 
+. . e e e e e e e e e e e e . . 
+. . e e e e e e e e e e e e . . 
+. e e e e e e e e e e e e e . . 
+. e e e e e e e e e e e e e e . 
+. e e e 1 1 e e e e 1 e e e e . 
+. e e 1 1 1 e 1 1 e 1 1 e e e . 
+. . e 1 1 f 1 1 1 1 f 1 1 e . . 
+. f f 1 f 1 1 1 1 1 1 f 1 f f . 
+. f f f e f f f f f f e f f f . 
+1 1 f . f e e e e e e f . f 1 1 
+1 1 . . f f e f f e f f . . 1 1 
+. f e . f e e f f e e f . e f . 
+. f f e e f f f f f f e e f f . 
+. f f f f f . . . . f f f f f . 
+. . f f f . . . . . . f f f . . 
 `];
         }
         return null;

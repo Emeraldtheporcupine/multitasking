@@ -5,7 +5,7 @@ namespace SpriteKind {
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, location) {
     tiles.setTileAt(location, assets.tile`myTile8`)
     projectile = sprites.createProjectileFromSprite(assets.image`POW`, playerCharacter, 0, 0)
-    projectile.ax = 400
+    projectile.ax = 600
     music.play(music.createSoundEffect(WaveShape.Noise, 1162, 1607, 255, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
     projectile.setFlag(SpriteFlag.AutoDestroy, false)
     projectile.setFlag(SpriteFlag.DestroyOnWall, true)
@@ -187,6 +187,39 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         }
     }
 })
+function Start () {
+    playerControl = true
+    spriteutils.setLifeImage(assets.image`life`)
+    info.setLife(4)
+    playerCharacter = sprites.create(assets.image`Player_Idle_image`, SpriteKind.Player)
+    scene.setBackgroundColor(8)
+    direction = 1
+    tiles.setCurrentTilemap(tilemap`level1`)
+    playerCharacter.ay = 400
+    scene.cameraFollowSprite(playerCharacter)
+    tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
+    tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
+    flinging = false
+    invincible = false
+    for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
+        groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
+        sprites.setDataNumber(groundbug, "direction", -1)
+        groundbug.vx = -20
+        tiles.placeOnTile(groundbug, grounders)
+        tiles.setTileAt(grounders, assets.tile`transparency16`)
+    }
+    setupAnim()
+    timer.background(function () {
+        music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
+        music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
+    })
+    if (false) {
+        timer.background(function () {
+            music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
+            music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
+        })
+    }
+}
 scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     if (sprite.isHittingTile(CollisionDirection.Bottom)) {
         tiles.setTileAt(tiles.getTileLocation(location.column, location.row - 1), assets.tile`myTile9`)
@@ -295,6 +328,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
 let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
+let groundbug: Sprite = null
 let runningUp = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
@@ -314,49 +348,19 @@ let idleLeft: Image[] = []
 let idleRight: Image[] = []
 let tempImage: Image = null
 let tempList: Image[] = []
-let Crate: Sprite = null
-let projectile: Sprite = null
-let groundbug: Sprite = null
-let invincible = false
 let flinging = false
+let invincible = false
+let Crate: Sprite = null
 let direction = 0
 let playerCharacter: Sprite = null
+let projectile: Sprite = null
 let playerControl = false
 namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 240
     export const ARCADE_SCREEN_HEIGHT = 160
 }
-spriteutils.setLifeImage(assets.image`life`)
-info.setLife(4)
-playerControl = true
-playerCharacter = sprites.create(assets.image`Player_Idle_image`, SpriteKind.Player)
-scene.setBackgroundColor(8)
-direction = 1
-tiles.setCurrentTilemap(tilemap`level1`)
-playerCharacter.ay = 400
-scene.cameraFollowSprite(playerCharacter)
-tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
-tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
-flinging = false
-invincible = false
-for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
-    groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
-    sprites.setDataNumber(groundbug, "direction", -1)
-    groundbug.vx = -20
-    tiles.placeOnTile(groundbug, grounders)
-    tiles.setTileAt(grounders, assets.tile`transparency16`)
-}
-setupAnim()
-timer.background(function () {
-    music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
-    music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
-})
-if (false) {
-    timer.background(function () {
-        music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
-        music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
-    })
-}
+playerControl = false
+Start()
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
