@@ -2,6 +2,13 @@ namespace SpriteKind {
     export const Show = SpriteKind.create()
     export const fallingCrate = SpriteKind.create()
 }
+/**
+ * FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
+ * 
+ * Level 1 = 88 sec.
+ * 
+ * Level 2
+ */
 scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, location) {
     tiles.setTileAt(location, assets.tile`myTile8`)
     projectile = sprites.createProjectileFromSprite(assets.image`POW`, playerCharacter, 0, 0)
@@ -312,14 +319,14 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
                 if (sprites.readDataNumber(otherSprite, "direction") == 1) {
                     animation.runImageAnimation(
                     otherSprite,
-                    assets.animation`bugSQUICH`,
+                    assets.animation`crawlerSQUICH`,
                     200,
                     false
                     )
                 } else {
                     animation.runImageAnimation(
                     otherSprite,
-                    createFlipped(assets.animation`bugSQUICH`),
+                    createFlipped(assets.animation`crawlerSQUICH`),
                     200,
                     false
                     )
