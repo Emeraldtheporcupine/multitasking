@@ -11,6 +11,7 @@ namespace SpriteKind {
  * Level 2
  */
 function title () {
+    cutsceneColors()
     titleScreen = true
     timer.background(function () {
         pressA = false
@@ -428,6 +429,16 @@ function die () {
         })
     })
 }
+function cutsceneColors () {
+    color.setColor(2, color.parseColorString("808080"))
+    color.setColor(6, color.parseColorString("575757"))
+    color.setColor(8, color.parseColorString("616161"))
+    color.setColor(10, color.parseColorString("333333"))
+    color.setColor(11, color.parseColorString("9c9c9c"))
+    color.setColor(12, color.parseColorString("dbdbdb"))
+    color.setColor(13, color.parseColorString("d9d9d9"))
+    color.setColor(14, color.parseColorString("474747"))
+}
 scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     if (sprite.isHittingTile(CollisionDirection.Bottom)) {
         tiles.setTileAt(tiles.getTileLocation(location.column, location.row - 1), assets.tile`myTile9`)
@@ -446,6 +457,7 @@ function deleteEVERYTHING () {
 }
 sprites.onDestroyed(SpriteKind.showCutscene, function (sprite) {
     timer.after(2000, function () {
+        color.startFadeFromCurrent(color.originalPalette, 100)
         NEORUSH = sprites.create(assets.image`NEORUSH_image`, SpriteKind.Show)
         tiles.placeOnTile(NEORUSH, tiles.getTileLocation(15, 6))
         NEORUSH.setScale(2, ScaleAnchor.Middle)
@@ -579,6 +591,9 @@ namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 240
     export const ARCADE_SCREEN_HEIGHT = 160
 }
+color.setPalette(
+color.originalPalette
+)
 playerControl = false
 title()
 game.onUpdate(function () {
