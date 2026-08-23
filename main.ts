@@ -9,7 +9,7 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile1`, function (sprite, l
     music.play(music.createSoundEffect(WaveShape.Noise, 1162, 1607, 255, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
     projectile.setFlag(SpriteFlag.AutoDestroy, false)
     projectile.setFlag(SpriteFlag.DestroyOnWall, true)
-    poofs(projectile, false)
+    poofs(projectile, false, 4)
 })
 scene.onHitWall(SpriteKind.Player, function (sprite, location) {
     if (playerCharacter.isHittingTile(CollisionDirection.Left) || playerCharacter.isHittingTile(CollisionDirection.Right)) {
@@ -166,7 +166,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                 music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
             }
         } else {
-            music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+            music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
             runningUp = false
             playerCharacter.ay = 400
             playerCharacter.vx = direction * -100
@@ -182,9 +182,25 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
 })
 info.onLifeZero(function () {
     playerControl = false
+    characterAnimations.setCharacterAnimationsEnabled(playerCharacter, false)
+    characterAnimations.clearCharacterState(playerCharacter)
+    animation.runImageAnimation(
+    playerCharacter,
+    assets.animation`Player_Dead`,
+    200,
+    false
+    )
+    scene.cameraFollowSprite(null)
+    playerCharacter.vx = 0
+    playerCharacter.vy = -200
+    playerCharacter.setFlag(SpriteFlag.AutoDestroy, true)
+    playerCharacter.setFlag(SpriteFlag.GhostThroughWalls, true)
+    timer.after(2500, function () {
+        game.reset()
+    })
 })
-function poofs (sprite: Sprite, expoldeTrue: boolean) {
-    for (let index = 0; index < 4; index++) {
+function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
+    for (let index = 0; index < amount; index++) {
         timer.after(randint(0, 200), function () {
             poofPoof = sprites.create(assets.image`pof`, SpriteKind.Show)
             poofPoof.setPosition(sprite.x + randint(-8, 8), sprite.y + randint(-8, 8))
@@ -210,7 +226,7 @@ function poofs (sprite: Sprite, expoldeTrue: boolean) {
     }
 }
 sprites.onDestroyed(SpriteKind.Projectile, function (sprite) {
-    poofs(sprite, true)
+    poofs(sprite, true, 4)
     tiles.setWallAt(sprite.tilemapLocation().getNeighboringLocation(CollisionDirection.Right), false)
     tiles.setTileAt(sprite.tilemapLocation().getNeighboringLocation(CollisionDirection.Right), assets.tile`transparency16`)
     scene.cameraShake(4, 500)
@@ -249,7 +265,7 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
                     )
                 }
                 timer.after(500, function () {
-                    poofs(otherSprite, true)
+                    poofs(otherSprite, true, 4)
                     sprites.destroy(otherSprite)
                 })
             } else {
@@ -306,10 +322,6 @@ scene.cameraFollowSprite(playerCharacter)
 tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
 tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
 flinging = false
-timer.background(function () {
-    music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
-    music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
-})
 invincible = false
 for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
     groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
@@ -319,6 +331,16 @@ for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
     tiles.setTileAt(grounders, assets.tile`transparency16`)
 }
 setupAnim()
+timer.background(function () {
+    music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
+    music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
+})
+if (false) {
+    timer.background(function () {
+        music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
+        music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
+    })
+}
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
@@ -360,6 +382,11 @@ game.onUpdate(function () {
                 } else {
                     playerCharacter.vy += playerCharacter.vy * -0.1
                 }
+            }
+            if (controller.right.isPressed() && playerCharacter.vx < 0) {
+                playerCharacter.vx += 10
+            } else if (controller.left.isPressed() && playerCharacter.vx > 0) {
+                playerCharacter.vx += -10
             }
         }
         if (playerCharacter.vx > 200) {
@@ -441,6 +468,7 @@ game.onUpdate(function () {
             tiles.setWallAt(tiles.getTileLocation(crateBehaviour.column, crateBehaviour.row), false)
             tiles.setTileAt(tiles.getTileLocation(crateBehaviour.column, crateBehaviour.row), assets.tile`transparency16`)
             cratefall = sprites.create(assets.image`Box`, SpriteKind.fallingCrate)
+            cratefall.z = -2
             tiles.placeOnTile(cratefall, tiles.getTileLocation(crateBehaviour.column, crateBehaviour.row))
             cratefall.ay = 200
         }
