@@ -228,6 +228,7 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     }
 })
 info.onLifeZero(function () {
+    music.stopAllSounds()
     playerControl = false
     characterAnimations.setCharacterAnimationsEnabled(playerCharacter, false)
     characterAnimations.clearCharacterState(playerCharacter)
@@ -242,8 +243,11 @@ info.onLifeZero(function () {
     playerCharacter.vy = -200
     playerCharacter.setFlag(SpriteFlag.AutoDestroy, true)
     playerCharacter.setFlag(SpriteFlag.GhostThroughWalls, true)
-    timer.after(2500, function () {
-        game.reset()
+    timer.background(function () {
+        music.play(music.createSong(assets.song`Dead`), music.PlaybackMode.UntilDone)
+        timer.after(1500, function () {
+            game.reset()
+        })
     })
 })
 function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
