@@ -187,19 +187,32 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
         }
     }
 })
-function Start () {
+function Start (level: number) {
+    deleteEVERYTHING()
+    timeFromStart = Math.floor(game.runtime() * 0.001)
     playerControl = true
     health = 4
     playerCharacter = sprites.create(assets.image`Player_Idle_image`, SpriteKind.Player)
     scene.setBackgroundColor(8)
     direction = 1
-    tiles.setCurrentTilemap(tilemap`level1`)
     playerCharacter.ay = 400
     scene.cameraFollowSprite(playerCharacter)
-    tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
-    tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
     flinging = false
     invincible = false
+    if (level == 1) {
+        tiles.setCurrentTilemap(tilemap`level1`)
+        tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
+        tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
+        timer.background(function () {
+            music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
+            music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
+        })
+    } else if (level == 2) {
+        timer.background(function () {
+            music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
+            music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
+        })
+    }
     for (let grounders of tiles.getTilesByType(assets.tile`myTile16`)) {
         groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
         sprites.setDataNumber(groundbug, "direction", -1)
@@ -208,16 +221,6 @@ function Start () {
         tiles.setTileAt(grounders, assets.tile`transparency16`)
     }
     setupAnim()
-    timer.background(function () {
-        music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
-        music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
-    })
-    if (false) {
-        timer.background(function () {
-            music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
-            music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
-        })
-    }
 }
 function die () {
     music.stopAllSounds()
@@ -238,7 +241,7 @@ function die () {
     timer.background(function () {
         music.play(music.createSong(assets.song`Dead`), music.PlaybackMode.UntilDone)
         timer.after(1500, function () {
-            game.reset()
+            Start(1)
         })
     })
 }
@@ -249,6 +252,13 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
         sprites.destroy(sprite)
     }
 })
+function deleteEVERYTHING () {
+    sprites.destroyAllSpritesOfKind(SpriteKind.Player)
+    sprites.destroyAllSpritesOfKind(SpriteKind.Text)
+    sprites.destroyAllSpritesOfKind(SpriteKind.Show)
+    sprites.destroyAllSpritesOfKind(SpriteKind.Enemy)
+    sprites.destroyAllSpritesOfKind(SpriteKind.Projectile)
+}
 function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number) {
     for (let index = 0; index < amount; index++) {
         timer.after(randint(0, 200), function () {
@@ -331,12 +341,15 @@ sprites.onOverlap(SpriteKind.Player, SpriteKind.Enemy, function (sprite, otherSp
         }
     }
 })
+let currentTime = 0
+let textSprite2: TextSprite = null
 let textSprite: TextSprite = null
 let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
 let groundbug: Sprite = null
 let health = 0
+let timeFromStart = 0
 let runningUp = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
@@ -368,7 +381,7 @@ namespace userconfig {
     export const ARCADE_SCREEN_HEIGHT = 160
 }
 playerControl = false
-Start()
+Start(1)
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
@@ -529,11 +542,24 @@ game.onUpdate(function () {
         }
     }
     sprites.destroy(textSprite)
+    sprites.destroy(textSprite2)
     if (!(spriteutils.isDestroyed(playerCharacter))) {
-        textSprite = textsprite.create("[" + health + "]", 0, 10)
+        textSprite = textsprite.create("(" + health + ")", 0, 10)
         textSprite.setOutline(1, 1)
         textSprite.setIcon(assets.image`health`)
-        textSprite.setPosition(scene.cameraProperty(CameraProperty.X) - 86, scene.cameraProperty(CameraProperty.Y) - 64)
+        textSprite.setPosition(scene.cameraProperty(CameraProperty.X) - 96, scene.cameraProperty(CameraProperty.Y) - 62)
         textSprite.setFlag(SpriteFlag.Ghost, true)
+        currentTime = Math.floor(game.runtime() * 0.001 - timeFromStart)
+        textSprite2 = textsprite.create("(" + currentTime + ")", 0, 10)
+        textSprite2.setOutline(1, 1)
+        textSprite2.setIcon(assets.image`time`)
+        if (currentTime < 10) {
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 99, scene.cameraProperty(CameraProperty.Y) - 74)
+        } else if (currentTime > 9 && currentTime < 100) {
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 96, scene.cameraProperty(CameraProperty.Y) - 74)
+        } else if (currentTime > 99) {
+            textSprite2.setPosition(scene.cameraProperty(CameraProperty.X) - 93, scene.cameraProperty(CameraProperty.Y) - 74)
+        }
+        textSprite2.setFlag(SpriteFlag.Ghost, true)
     }
 })
