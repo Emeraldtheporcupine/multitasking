@@ -1,0 +1,50 @@
+{
+    "name": "multitasking",
+    "description": "",
+    "dependencies": {
+        "device": "*",
+        "arcade-character-animations": "github:microsoft/arcade-character-animations#v0.1.0",
+        "arcade-sprite-util": "github:jwunderl/arcade-sprite-util#v0.6.0",
+        "Timers": "github:microsoft/arcade-timers#v1.1.0",
+        "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.2.1"
+    },
+    "files": [
+        "main.blocks",
+        "main.ts",
+        "README.md",
+        "assets.json",
+        "images.g.jres",
+        "images.g.ts",
+        "tilemap.g.jres",
+        "tilemap.g.ts"
+    ],
+    "testFiles": [
+        "test.ts"
+    ],
+    "targetVersions": {
+        "target": "4.0.14",
+        "targetId": "arcade"
+    },
+    "supportedTargets": [
+        "arcade"
+    ],
+    "preferredEditor": "blocksprj",
+    "palette": [
+        "#000000",
+        "#F0F0F0",
+        "#B31500",
+        "#DB001A",
+        "#A35F00",
+        "#DB9600",
+        "#3E8500",
+        "#54C304",
+        "#286fb8",
+        "#00AACC",
+        "#3f2811",
+        "#88552B",
+        "#E2B028",
+        "#BCA971",
+        "#4E4141",
+        "#000000"
+    ]
+}
