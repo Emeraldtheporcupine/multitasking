@@ -56,6 +56,16 @@ function title () {
                     50,
                     false
                     )
+                    cutsceneBatSprite = sprites.create(assets.image`Bat_Image`, SpriteKind.Show)
+                    animation.runImageAnimation(
+                    cutsceneBatSprite,
+                    assets.animation`Bat_Fly`,
+                    100,
+                    true
+                    )
+                    tiles.placeOnTile(cutsceneBatSprite, tiles.getTileLocation(17, 4))
+                    cutsceneBatSprite.vy += 8
+                    cutsceneBatSprite.x += -6
                     newSprite = sprites.create(img`
                         . . . . . . . . . . . . . . . . 
                         . . . . . . . . . . . . . . . . 
@@ -95,19 +105,42 @@ function title () {
                                 100,
                                 false
                                 )
-                                cutscenePlayer.vy = -200
-                                timer.after(500, function () {
+                                cutscenePlayer.vy = -225
+                                timer.after(550, function () {
                                     animation.runImageAnimation(
                                     cutscenePlayer,
                                     assets.animation`Player_Hurt`,
                                     100,
                                     true
                                     )
+                                    animation.runImageAnimation(
+                                    cutsceneBatSprite,
+                                    assets.animation`Bat_Clap`,
+                                    100,
+                                    true
+                                    )
                                     cutscenePlayer.vx = -100
                                     cutscenePlayer.fx = 100
+                                    cutsceneBatSprite.vy = 0
                                     fallHit = true
                                     timer.background(function () {
                                         pauseUntil(() => fallHit == false)
+                                        animation.runImageAnimation(
+                                        cutsceneBatSprite,
+                                        assets.animation`Bat_Fly`,
+                                        100,
+                                        true
+                                        )
+                                        timer.after(1000, function () {
+                                            animation.runImageAnimation(
+                                            cutsceneBatSprite,
+                                            createFlipped(assets.animation`Bat_Fly`),
+                                            100,
+                                            true
+                                            )
+                                            cutsceneBatSprite.vx = 200
+                                            cutsceneBatSprite.setFlag(SpriteFlag.AutoDestroy, true)
+                                        })
                                         timer.after(2500, function () {
                                             animation.runImageAnimation(
                                             cutscenePlayer,
@@ -203,6 +236,15 @@ scene.onHitWall(SpriteKind.showCutscene, function (sprite, location) {
     if (fallHit == true) {
         if (sprite.isHittingTile(CollisionDirection.Bottom)) {
             fallHit = false
+            timer.background(function () {
+                poofs(cutscenePlayer, false, 1, 1)
+                timer.after(100, function () {
+                    poofs(cutscenePlayer, false, 1, 1)
+                    timer.after(100, function () {
+                        poofs(cutscenePlayer, false, 1, 1)
+                    })
+                })
+            })
             animation.runImageAnimation(
             sprite,
             assets.animation`Cutscene_Skid0`,
@@ -456,12 +498,13 @@ function deleteEVERYTHING () {
     sprites.destroyAllSpritesOfKind(SpriteKind.Projectile)
 }
 sprites.onDestroyed(SpriteKind.showCutscene, function (sprite) {
-    timer.after(2000, function () {
+    timer.after(1950, function () {
         color.startFadeFromCurrent(color.originalPalette, 100)
-        NEORUSH = sprites.create(assets.image`NEORUSH_image`, SpriteKind.Show)
-        tiles.placeOnTile(NEORUSH, tiles.getTileLocation(15, 6))
-        NEORUSH.setScale(2, ScaleAnchor.Middle)
-        poofs(NEORUSH, false, 20, 45)
+        EMORUSH = sprites.create(assets.image`EMORUSH_image`, SpriteKind.Show)
+        tiles.placeOnTile(EMORUSH, tiles.getTileLocation(15, 6))
+        EMORUSH.x += 8
+        EMORUSH.setScale(2, ScaleAnchor.Middle)
+        poofs(EMORUSH, false, 20, 45)
     })
 })
 function poofs (sprite: Sprite, expoldeTrue: boolean, amount: number, distance: number) {
@@ -552,7 +595,7 @@ let textSprite: TextSprite = null
 let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
-let NEORUSH: Sprite = null
+let EMORUSH: Sprite = null
 let groundbug: Sprite = null
 let health = 0
 let timeFromStart = 0
@@ -582,6 +625,7 @@ let direction = 0
 let playerCharacter: Sprite = null
 let projectile: Sprite = null
 let newSprite: Sprite = null
+let cutsceneBatSprite: Sprite = null
 let cutscenePlayer: Sprite = null
 let fallHit = false
 let pressA = false
@@ -758,13 +802,13 @@ game.onUpdate(function () {
     sprites.destroy(textSprite)
     sprites.destroy(textSprite2)
     if (!(spriteutils.isDestroyed(playerCharacter))) {
-        textSprite = textsprite.create("(" + health + ")", 0, 10)
+        textSprite = textsprite.create("(" + health + ")", 0, 15)
         textSprite.setOutline(1, 1)
         textSprite.setIcon(assets.image`health`)
         textSprite.setPosition(scene.cameraProperty(CameraProperty.X) - 96, scene.cameraProperty(CameraProperty.Y) - 62)
         textSprite.setFlag(SpriteFlag.Ghost, true)
         currentTime = Math.floor(game.runtime() * 0.001 - timeFromStart)
-        textSprite2 = textsprite.create("(" + currentTime + ")", 0, 10)
+        textSprite2 = textsprite.create("(" + currentTime + ")", 0, 15)
         textSprite2.setOutline(1, 1)
         textSprite2.setIcon(assets.image`time`)
         if (currentTime < 10) {
