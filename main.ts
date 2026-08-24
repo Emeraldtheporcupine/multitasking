@@ -59,7 +59,7 @@ function title () {
                     cutsceneBatSprite = sprites.create(assets.image`Bat_Image`, SpriteKind.Show)
                     animation.runImageAnimation(
                     cutsceneBatSprite,
-                    assets.animation`Bat_Fly`,
+                    assets.animation`Bat_Fly_Forward`,
                     100,
                     true
                     )
@@ -115,7 +115,7 @@ function title () {
                                     )
                                     animation.runImageAnimation(
                                     cutsceneBatSprite,
-                                    assets.animation`Bat_Clap`,
+                                    assets.animation`Bat_Backtrack`,
                                     100,
                                     true
                                     )
@@ -127,14 +127,14 @@ function title () {
                                         pauseUntil(() => fallHit == false)
                                         animation.runImageAnimation(
                                         cutsceneBatSprite,
-                                        assets.animation`Bat_Fly`,
+                                        assets.animation`Bat_Fly_Forward`,
                                         100,
                                         true
                                         )
                                         timer.after(1000, function () {
                                             animation.runImageAnimation(
                                             cutsceneBatSprite,
-                                            createFlipped(assets.animation`Bat_Fly`),
+                                            createFlipped(assets.animation`Bat_Fly_Forward`),
                                             100,
                                             true
                                             )
@@ -247,11 +247,11 @@ scene.onHitWall(SpriteKind.showCutscene, function (sprite, location) {
             })
             animation.runImageAnimation(
             sprite,
-            assets.animation`Cutscene_Skid0`,
+            assets.animation`Cutscene_CrouchSkid`,
             500,
             false
             )
-            timer.after(750, function () {
+            timer.after(800, function () {
                 animation.runImageAnimation(
                 sprite,
                 assets.animation`Player_Idle`,
@@ -285,6 +285,8 @@ function setupAnim () {
     hurtLeft = createFlipped(assets.animation`Player_Hurt`)
     crouchRight = assets.animation`Player_Crouch`
     crouchLeft = createFlipped(assets.animation`Player_Crouch`)
+    revRight = assets.animation`Player_RevDash`
+    revLeft = createFlipped(assets.animation`Player_RevDash`)
     crawlerRight = assets.animation`Crawler`
     crawlerLeft = createFlipped(assets.animation`Crawler`)
     characterAnimations.loopFrames(
@@ -361,6 +363,18 @@ function setupAnim () {
     )
     characterAnimations.loopFrames(
     playerCharacter,
+    revRight,
+    75,
+    characterAnimations.rule(Predicate.FacingUp, Predicate.FacingRight)
+    )
+    characterAnimations.loopFrames(
+    playerCharacter,
+    revLeft,
+    75,
+    characterAnimations.rule(Predicate.FacingUp, Predicate.FacingLeft)
+    )
+    characterAnimations.loopFrames(
+    playerCharacter,
     crouchRight,
     100,
     characterAnimations.rule(Predicate.MovingDown, Predicate.FacingRight)
@@ -388,17 +402,26 @@ function setupAnim () {
 }
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (titleScreen == false) {
-        if (playerControl == true) {
-            if (runningUp == false) {
-                if (playerCharacter.vy == 0) {
-                    playerCharacter.vy = -125
-                    music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+        if (!(controller.down.isPressed()) && revving == false) {
+            if (playerControl == true) {
+                if (runningUp == false) {
+                    if (playerCharacter.vy == 0) {
+                        playerCharacter.vy = -125
+                        music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                    }
+                } else {
+                    music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                    runningUp = false
+                    playerCharacter.ay = 400
+                    playerCharacter.vx = direction * -100
                 }
-            } else {
-                music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
-                runningUp = false
-                playerCharacter.ay = 400
-                playerCharacter.vx = direction * -100
+            }
+        } else {
+            if (playerControl == true) {
+                if (runningUp == false) {
+                    revving = true
+                    music.play(music.createSoundEffect(WaveShape.Square, 1, 2863, 255, 0, 1000, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                }
             }
         }
     } else {
@@ -415,6 +438,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
 })
 function Start (level: number) {
     deleteEVERYTHING()
+    revving = false
     timeFromStart = Math.floor(game.runtime() * 0.001)
     playerControl = true
     health = 4
@@ -448,6 +472,17 @@ function Start (level: number) {
     }
     setupAnim()
 }
+controller.down.onEvent(ControllerButtonEvent.Released, function () {
+    if (titleScreen == false && playerControl == true) {
+        if (revving == true) {
+            playerCharacter.vx = direction * 200
+            playerCharacter.vy = -25
+            music.play(music.createSoundEffect(WaveShape.Square, 2892, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+            revving = false
+            flinging = true
+        }
+    }
+})
 function die () {
     music.stopAllSounds()
     playerControl = false
@@ -600,8 +635,11 @@ let groundbug: Sprite = null
 let health = 0
 let timeFromStart = 0
 let runningUp = false
+let revving = false
 let crawlerLeft: Image[] = []
 let crawlerRight: Image[] = []
+let revLeft: Image[] = []
+let revRight: Image[] = []
 let crouchLeft: Image[] = []
 let crouchRight: Image[] = []
 let hurtLeft: Image[] = []
@@ -644,7 +682,7 @@ game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
             if (controller.right.isPressed()) {
-                if (!(controller.down.isPressed())) {
+                if (!(controller.down.isPressed() || revving == true)) {
                     direction = 1
                     if (runningUp == false) {
                         if (playerCharacter.vx > 100) {
@@ -663,7 +701,7 @@ game.onUpdate(function () {
                     playerCharacter.vx += playerCharacter.vx * -0.1
                 }
             } else if (controller.left.isPressed()) {
-                if (!(controller.down.isPressed())) {
+                if (!(controller.down.isPressed() || revving == true)) {
                     direction = -1
                     if (runningUp == false) {
                         if (playerCharacter.vx < -100) {
@@ -721,7 +759,13 @@ game.onUpdate(function () {
                 } else if (playerCharacter.vx < -101) {
                     characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingLeft, Predicate.FacingLeft))
                 } else {
-                    if (controller.down.isPressed()) {
+                    if (controller.down.isPressed() && revving) {
+                        if (direction == 1) {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.FacingUp, Predicate.FacingRight))
+                        } else {
+                            characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.FacingUp, Predicate.FacingLeft))
+                        }
+                    } else if (controller.down.isPressed() && revving == false) {
                         if (direction == 1) {
                             characterAnimations.setCharacterState(playerCharacter, characterAnimations.rule(Predicate.MovingDown, Predicate.FacingRight))
                         } else {
@@ -802,13 +846,13 @@ game.onUpdate(function () {
     sprites.destroy(textSprite)
     sprites.destroy(textSprite2)
     if (!(spriteutils.isDestroyed(playerCharacter))) {
-        textSprite = textsprite.create("(" + health + ")", 0, 15)
+        textSprite = textsprite.create("" + health, 0, 15)
         textSprite.setOutline(1, 1)
         textSprite.setIcon(assets.image`health`)
         textSprite.setPosition(scene.cameraProperty(CameraProperty.X) - 96, scene.cameraProperty(CameraProperty.Y) - 62)
         textSprite.setFlag(SpriteFlag.Ghost, true)
         currentTime = Math.floor(game.runtime() * 0.001 - timeFromStart)
-        textSprite2 = textsprite.create("(" + currentTime + ")", 0, 15)
+        textSprite2 = textsprite.create("" + currentTime, 0, 15)
         textSprite2.setOutline(1, 1)
         textSprite2.setIcon(assets.image`time`)
         if (currentTime < 10) {
