@@ -42,6 +42,7 @@ function title () {
             200,
             false
             )
+            music.play(music.createSoundEffect(WaveShape.Noise, 2189, 2210, 255, 0, 500, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
             timer.after(200, function () {
                 animation.runImageAnimation(
                 cutscenePlayer,
@@ -98,13 +99,16 @@ function title () {
                             75,
                             true
                             )
+                            music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                             timer.after(500, function () {
+                                poofs(cutscenePlayer, false, 1, 4)
                                 animation.runImageAnimation(
                                 cutscenePlayer,
                                 assets.animation`Player_Jump`,
                                 100,
                                 false
                                 )
+                                music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                 cutscenePlayer.vy = -225
                                 timer.after(550, function () {
                                     animation.runImageAnimation(
@@ -155,6 +159,7 @@ function title () {
                                                 75,
                                                 true
                                                 )
+                                                music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                                 timer.after(1000, function () {
                                                     cutscenePlayer.vx = 250
                                                     cutscenePlayer.fx = 0
@@ -164,6 +169,7 @@ function title () {
                                                     50,
                                                     true
                                                     )
+                                                    music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                                     cutscenePlayer.setFlag(SpriteFlag.AutoDestroy, true)
                                                 })
                                             })
@@ -245,6 +251,7 @@ scene.onHitWall(SpriteKind.showCutscene, function (sprite, location) {
                     })
                 })
             })
+            music.play(music.createSoundEffect(WaveShape.Noise, 2189, 2210, 255, 0, 500, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
             animation.runImageAnimation(
             sprite,
             assets.animation`Cutscene_CrouchSkid`,
@@ -407,10 +414,10 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                 if (runningUp == false) {
                     if (playerCharacter.vy == 0) {
                         playerCharacter.vy = -125
-                        music.play(music.createSoundEffect(WaveShape.Square, 622, 1295, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                        music.play(music.createSoundEffect(WaveShape.Square, 1620, 3212, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                     }
                 } else {
-                    music.play(music.createSoundEffect(WaveShape.Square, 744, 1565, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+                    music.play(music.createSoundEffect(WaveShape.Square, 2218, 3821, 255, 0, 100, SoundExpressionEffect.None, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                     runningUp = false
                     playerCharacter.ay = 400
                     playerCharacter.vx = direction * -100
@@ -420,7 +427,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
             if (playerControl == true) {
                 if (runningUp == false) {
                     revving = true
-                    music.play(music.createSoundEffect(WaveShape.Square, 1, 2863, 255, 0, 1000, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                    music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                 }
             }
         }
@@ -477,7 +484,7 @@ controller.down.onEvent(ControllerButtonEvent.Released, function () {
         if (revving == true) {
             playerCharacter.vx = direction * 200
             playerCharacter.vy = -25
-            music.play(music.createSoundEffect(WaveShape.Square, 2892, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+            music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
             revving = false
             flinging = true
         }
