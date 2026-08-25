@@ -19,6 +19,7 @@ function title () {
         pressA = true
         music.play(music.createSong(assets.song`TITLE`), music.PlaybackMode.LoopingInBackground)
     })
+    level = 2
     fallHit = false
     scene.setBackgroundColor(8)
     tiles.setCurrentTilemap(tilemap`cutsceneLevel`)
@@ -407,10 +408,20 @@ function setupAnim () {
         )
     }
 }
+scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile13`, function (sprite, location) {
+    if (playerControl) {
+        playerControl = false
+        color.startFadeFromCurrent(color.Black, 250)
+        timer.after(250, function () {
+            level += 1
+            Start(level)
+        })
+    }
+})
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (titleScreen == false) {
-        if (!(controller.down.isPressed()) && revving == false) {
-            if (playerControl == true) {
+        if (playerControl == true) {
+            if (!(controller.down.isPressed()) && revving == false) {
                 if (runningUp == false) {
                     if (playerCharacter.vy == 0) {
                         playerCharacter.vy = -125
@@ -422,12 +433,12 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                     playerCharacter.ay = 400
                     playerCharacter.vx = direction * -100
                 }
-            }
-        } else {
-            if (playerControl == true) {
-                if (runningUp == false) {
-                    revving = true
-                    music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+            } else {
+                if (playerControl == true) {
+                    if (runningUp == false) {
+                        revving = true
+                        music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                    }
                 }
             }
         }
@@ -439,13 +450,19 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
             music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 115, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
             music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 53, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
             music.play(music.createSoundEffect(WaveShape.Sawtooth, 1749, 1749, 20, 0, 200, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.UntilDone)
-            Start(1)
+            color.startFadeFromCurrent(color.Black, 250)
+            timer.after(250, function () {
+                Start(level)
+            })
         }
     }
 })
 function Start (level: number) {
     deleteEVERYTHING()
+    music.stopAllSounds()
+    color.startFadeFromCurrent(color.originalPalette, 250)
     revving = false
+    runningUp = false
     timeFromStart = Math.floor(game.runtime() * 0.001)
     playerControl = true
     health = 4
@@ -457,7 +474,7 @@ function Start (level: number) {
     flinging = false
     invincible = false
     if (level == 1) {
-        tiles.setCurrentTilemap(tilemap`level1`)
+        tiles.setCurrentTilemap(tilemap`PitfellValley`)
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
         timer.background(function () {
@@ -465,6 +482,13 @@ function Start (level: number) {
             music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
         })
     } else if (level == 2) {
+        timer.after(300, function () {
+            color.setColor(6, color.parseColorString("#f0f0f0"))
+            color.setColor(10, color.parseColorString("#4E4141"))
+            color.setColor(8, color.parseColorString("#71b4e3"), 250)
+        })
+        tiles.setCurrentTilemap(tilemap`ArgonPeaks`)
+        tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 27))
         timer.background(function () {
             music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
             music.play(music.createSong(assets.song`Argon Peaks`), music.PlaybackMode.LoopingInBackground)
@@ -474,6 +498,7 @@ function Start (level: number) {
         groundbug = sprites.create(assets.image`Box`, SpriteKind.Enemy)
         sprites.setDataNumber(groundbug, "direction", -1)
         groundbug.vx = -20
+        groundbug.ay = 400
         tiles.placeOnTile(groundbug, grounders)
         tiles.setTileAt(grounders, assets.tile`transparency16`)
     }
@@ -501,6 +526,7 @@ function die () {
     200,
     false
     )
+    color.setColor(13, color.parseColorString("#FFFFFF"), 500)
     scene.cameraFollowSprite(null)
     playerCharacter.vx = 0
     playerCharacter.vy = -200
@@ -673,6 +699,7 @@ let newSprite: Sprite = null
 let cutsceneBatSprite: Sprite = null
 let cutscenePlayer: Sprite = null
 let fallHit = false
+let level = 0
 let pressA = false
 let titleScreen = false
 let playerControl = false
@@ -819,7 +846,7 @@ game.onUpdate(function () {
                 playerCharacter.vx = playerCharacter.vy * -2
             }
         }
-        if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`wheeLEft`) && runningUp == false) {
+        if (playerCharacter.tileKindAt(TileDirection.Center, assets.tile`wheeLeft`) && runningUp == false) {
             if (playerCharacter.vx < -100 && playerCharacter.vy == 0) {
                 runningUp = true
                 playerCharacter.vy = playerCharacter.vx
