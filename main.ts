@@ -6,7 +6,7 @@ namespace SpriteKind {
 /**
  * FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
  * 
- * Level 1 = 88 sec.
+ * Level 1 = 86 sec.
  * 
  * Level 2
  */
