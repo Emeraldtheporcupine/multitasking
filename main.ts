@@ -100,7 +100,7 @@ function title () {
                             75,
                             true
                             )
-                            music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                            music.play(music.createSoundEffect(WaveShape.Noise, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                             timer.after(500, function () {
                                 poofs(cutscenePlayer, false, 1, 4)
                                 animation.runImageAnimation(
@@ -109,7 +109,7 @@ function title () {
                                 100,
                                 false
                                 )
-                                music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                                music.play(music.createSoundEffect(WaveShape.Noise, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                 cutscenePlayer.vy = -225
                                 timer.after(550, function () {
                                     animation.runImageAnimation(
@@ -160,7 +160,7 @@ function title () {
                                                 75,
                                                 true
                                                 )
-                                                music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                                                music.play(music.createSoundEffect(WaveShape.Noise, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                                 timer.after(1000, function () {
                                                     cutscenePlayer.vx = 250
                                                     cutscenePlayer.fx = 0
@@ -170,7 +170,7 @@ function title () {
                                                     50,
                                                     true
                                                     )
-                                                    music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                                                    music.play(music.createSoundEffect(WaveShape.Noise, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                                                     cutscenePlayer.setFlag(SpriteFlag.AutoDestroy, true)
                                                 })
                                             })
@@ -207,7 +207,7 @@ scene.onHitWall(SpriteKind.Player, function (sprite, location) {
             50,
             true
             )
-            music.play(music.createSoundEffect(WaveShape.Noise, 523, 521, 255, 0, 595, SoundExpressionEffect.None, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+            music.play(music.createSoundEffect(WaveShape.Noise, 523, 1, 255, 0, 600, SoundExpressionEffect.Warble, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
             scene.cameraShake(2, 500)
             tiles.placeOnTile(Crate, location)
             Crate.vx = direction * 400
@@ -437,7 +437,7 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
                 if (playerControl == true) {
                     if (runningUp == false) {
                         revving = true
-                        music.play(music.createSoundEffect(WaveShape.Square, 1, 5000, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                        music.play(music.createSoundEffect(WaveShape.Noise, 1730, 3353, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
                     }
                 }
             }
@@ -509,7 +509,7 @@ controller.down.onEvent(ControllerButtonEvent.Released, function () {
         if (revving == true) {
             playerCharacter.vx = direction * 200
             playerCharacter.vy = -25
-            music.play(music.createSoundEffect(WaveShape.Square, 5000, 1, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+            music.play(music.createSoundEffect(WaveShape.Noise, 3612, 1295, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
             revving = false
             flinging = true
         }
