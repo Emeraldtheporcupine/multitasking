@@ -2,6 +2,7 @@ namespace SpriteKind {
     export const Show = SpriteKind.create()
     export const fallingCrate = SpriteKind.create()
     export const showCutscene = SpriteKind.create()
+    export const boxDestroyer = SpriteKind.create()
 }
 /**
  * FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
@@ -200,20 +201,7 @@ scene.onHitWall(SpriteKind.Player, function (sprite, location) {
             tiles.setWallAt(location, false)
             tiles.setTileAt(location, assets.tile`transparency16`)
             playerCharacter.vx = direction * 100
-            Crate = sprites.create(assets.image`Box`, SpriteKind.Show)
-            animation.runImageAnimation(
-            Crate,
-            assets.animation`BoxFly`,
-            50,
-            true
-            )
-            music.play(music.createSoundEffect(WaveShape.Noise, 523, 1, 255, 0, 600, SoundExpressionEffect.Warble, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
-            scene.cameraShake(2, 500)
-            tiles.placeOnTile(Crate, location)
-            Crate.vx = direction * 400
-            Crate.vy = -90
-            Crate.setFlag(SpriteFlag.AutoDestroy, true)
-            Crate.setFlag(SpriteFlag.GhostThroughWalls, true)
+            crateFly(location, direction)
         }
     }
     if (sprite.isHittingTile(CollisionDirection.Bottom)) {
@@ -275,6 +263,71 @@ scene.onHitWall(SpriteKind.showCutscene, function (sprite, location) {
                 false
                 )
             })
+        }
+    }
+})
+controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
+    if (titleScreen == false && playerControl == true) {
+        newLocation = tiles.getTileLocation(playerCharacter.tilemapLocation().column + direction, playerCharacter.tilemapLocation().row)
+        if (carryingBox == true) {
+            carryingBox = false
+            if (direction == 1) {
+                animation.runImageAnimation(
+                playerCharacter,
+                assets.animation`Player_Throw`,
+                100,
+                false
+                )
+            } else {
+                animation.runImageAnimation(
+                playerCharacter,
+                createFlipped(assets.animation`Player_Throw`),
+                100,
+                false
+                )
+            }
+            timer.after((assets.animation`Player_Throw`.length - 3) * 100, function () {
+                carryBox.y += 8
+                carryBox.setFlag(SpriteFlag.AutoDestroy, true)
+                carryBox.setFlag(SpriteFlag.DestroyOnWall, true)
+                carryBox.vx = direction * 400
+                carryBox.setKind(SpriteKind.boxDestroyer)
+                animation.runImageAnimation(
+                carryBox,
+                assets.animation`BoxFly`,
+                50,
+                true
+                )
+            })
+            timer.after(assets.animation`Player_Throw`.length * 100, function () {
+                characterAnimations.setCharacterAnimationsEnabled(playerCharacter, true)
+            })
+        } else if (carryingBox == false) {
+            if (tiles.tileAtLocationIsWall(newLocation) && tiles.tileAtLocationEquals(newLocation, assets.tile`myTile9`)) {
+                carryingBox = true
+                playerCharacter.vx = 0
+                tiles.setWallAt(newLocation, false)
+                tiles.setTileAt(newLocation, assets.tile`transparency16`)
+                characterAnimations.setCharacterAnimationsEnabled(playerCharacter, false)
+                characterAnimations.clearCharacterState(playerCharacter)
+                if (direction == 1) {
+                    animation.runImageAnimation(
+                    playerCharacter,
+                    assets.animation`Player_Carry`,
+                    200,
+                    false
+                    )
+                } else {
+                    animation.runImageAnimation(
+                    playerCharacter,
+                    createFlipped(assets.animation`Player_Carry`),
+                    200,
+                    false
+                    )
+                }
+                carryBox = sprites.create(assets.image`Box`, SpriteKind.Show)
+                carryBox.setPosition(playerCharacter.x, playerCharacter.y - 16)
+            }
         }
     }
 })
@@ -420,7 +473,7 @@ scene.onOverlapTile(SpriteKind.Player, assets.tile`myTile13`, function (sprite, 
 })
 controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
     if (titleScreen == false) {
-        if (playerControl == true) {
+        if (playerControl == true && carryingBox == false) {
             if (!(controller.down.isPressed()) && revving == false) {
                 if (runningUp == false) {
                     if (playerCharacter.vy == 0) {
@@ -461,6 +514,7 @@ function Start (level: number) {
     deleteEVERYTHING()
     music.stopAllSounds()
     color.startFadeFromCurrent(color.originalPalette, 250)
+    carryingBox = false
     revving = false
     runningUp = false
     timeFromStart = Math.floor(game.runtime() * 0.001)
@@ -515,6 +569,22 @@ controller.down.onEvent(ControllerButtonEvent.Released, function () {
         }
     }
 })
+function crateFly (location: tiles.Location, multiplier: number) {
+    Crate = sprites.create(assets.image`Box`, SpriteKind.Show)
+    animation.runImageAnimation(
+    Crate,
+    assets.animation`BoxFly`,
+    50,
+    true
+    )
+    music.play(music.createSoundEffect(WaveShape.Noise, 523, 1, 255, 0, 600, SoundExpressionEffect.Warble, InterpolationCurve.Linear), music.PlaybackMode.InBackground)
+    scene.cameraShake(2, 500)
+    tiles.placeOnTile(Crate, tiles.getTileLocation(location.column, location.row))
+    Crate.vx = multiplier * 400
+    Crate.vy = -90
+    Crate.setFlag(SpriteFlag.AutoDestroy, true)
+    Crate.setFlag(SpriteFlag.GhostThroughWalls, true)
+}
 function die () {
     music.stopAllSounds()
     playerControl = false
@@ -535,7 +605,7 @@ function die () {
     timer.background(function () {
         music.play(music.createSong(assets.song`Dead`), music.PlaybackMode.UntilDone)
         timer.after(1500, function () {
-            Start(1)
+            Start(level)
         })
     })
 }
@@ -554,6 +624,19 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
         tiles.setTileAt(tiles.getTileLocation(location.column, location.row - 1), assets.tile`myTile9`)
         tiles.setWallAt(tiles.getTileLocation(location.column, location.row - 1), true)
         sprites.destroy(sprite)
+    }
+})
+scene.onHitWall(SpriteKind.boxDestroyer, function (sprite, location) {
+    if (sprite.isHittingTile(CollisionDirection.Right) && sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`)) {
+        sprites.destroy(sprite)
+        tiles.setTileAt(tiles.getTileLocation(location.column, location.row), assets.tile`transparency16`)
+        tiles.setWallAt(tiles.getTileLocation(location.column, location.row), false)
+        crateFly(tiles.getTileLocation(location.column, location.row), 1)
+    } else if (sprite.isHittingTile(CollisionDirection.Left) && sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`)) {
+        sprites.destroy(sprite)
+        tiles.setTileAt(tiles.getTileLocation(location.column, location.row), assets.tile`transparency16`)
+        tiles.setWallAt(tiles.getTileLocation(location.column, location.row), false)
+        crateFly(tiles.getTileLocation(location.column, location.row), -1)
     }
 })
 function deleteEVERYTHING () {
@@ -664,6 +747,7 @@ let cratefall: Sprite = null
 let location: tiles.Location = null
 let poofPoof: Sprite = null
 let EMORUSH: Sprite = null
+let Crate: Sprite = null
 let groundbug: Sprite = null
 let health = 0
 let timeFromStart = 0
@@ -687,11 +771,13 @@ let walkLeft: Image[] = []
 let walkRight: Image[] = []
 let idleLeft: Image[] = []
 let idleRight: Image[] = []
+let carryBox: Sprite = null
+let carryingBox = false
+let newLocation: tiles.Location = null
 let tempImage: Image = null
 let tempList: Image[] = []
 let flinging = false
 let invincible = false
-let Crate: Sprite = null
 let direction = 0
 let playerCharacter: Sprite = null
 let projectile: Sprite = null
@@ -715,58 +801,60 @@ title()
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
-            if (controller.right.isPressed()) {
-                if (!(controller.down.isPressed() || revving == true)) {
-                    direction = 1
-                    if (runningUp == false) {
-                        if (playerCharacter.vx > 100) {
-                            playerCharacter.vx += 5
+            if (carryingBox == false) {
+                if (controller.right.isPressed()) {
+                    if (!(controller.down.isPressed() || revving == true)) {
+                        direction = 1
+                        if (runningUp == false) {
+                            if (playerCharacter.vx > 100) {
+                                playerCharacter.vx += 5
+                            } else {
+                                playerCharacter.vx += 3
+                            }
                         } else {
-                            playerCharacter.vx += 3
+                            if (playerCharacter.vy < -100) {
+                                playerCharacter.vy += -5
+                            } else {
+                                playerCharacter.vy += -3
+                            }
                         }
                     } else {
-                        if (playerCharacter.vy < -100) {
-                            playerCharacter.vy += -5
-                        } else {
-                            playerCharacter.vy += -3
-                        }
+                        playerCharacter.vx += playerCharacter.vx * -0.1
                     }
-                } else {
-                    playerCharacter.vx += playerCharacter.vx * -0.1
-                }
-            } else if (controller.left.isPressed()) {
-                if (!(controller.down.isPressed() || revving == true)) {
-                    direction = -1
-                    if (runningUp == false) {
-                        if (playerCharacter.vx < -100) {
-                            playerCharacter.vx += -5
+                } else if (controller.left.isPressed()) {
+                    if (!(controller.down.isPressed() || revving == true)) {
+                        direction = -1
+                        if (runningUp == false) {
+                            if (playerCharacter.vx < -100) {
+                                playerCharacter.vx += -5
+                            } else {
+                                playerCharacter.vx += -2
+                            }
                         } else {
-                            playerCharacter.vx += -2
+                            if (playerCharacter.vy < -100) {
+                                playerCharacter.vy += -5
+                            } else {
+                                playerCharacter.vy += -2
+                            }
                         }
                     } else {
-                        if (playerCharacter.vy < -100) {
-                            playerCharacter.vy += -5
-                        } else {
-                            playerCharacter.vy += -2
-                        }
-                    }
-                } else {
-                    playerCharacter.vx += playerCharacter.vx * -0.1
-                }
-            } else {
-                if (runningUp == false) {
-                    if (flinging == false) {
                         playerCharacter.vx += playerCharacter.vx * -0.1
                     }
                 } else {
-                    playerCharacter.vy += playerCharacter.vy * -0.1
+                    if (runningUp == false) {
+                        if (flinging == false) {
+                            playerCharacter.vx += playerCharacter.vx * -0.1
+                        }
+                    } else {
+                        playerCharacter.vy += playerCharacter.vy * -0.1
+                    }
                 }
-            }
-            if (!(controller.down.isPressed())) {
-                if (controller.right.isPressed() && playerCharacter.vx < 0) {
-                    playerCharacter.vx += 10
-                } else if (controller.left.isPressed() && playerCharacter.vx > 0) {
-                    playerCharacter.vx += -10
+                if (!(controller.down.isPressed())) {
+                    if (controller.right.isPressed() && playerCharacter.vx < 0) {
+                        playerCharacter.vx += 10
+                    } else if (controller.left.isPressed() && playerCharacter.vx > 0) {
+                        playerCharacter.vx += -10
+                    }
                 }
             }
         }
