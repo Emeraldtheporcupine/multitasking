@@ -16,11 +16,11 @@ function title () {
     titleScreen = true
     timer.background(function () {
         pressA = false
-        music.play(music.createSong(assets.song`TITLE intro`), music.PlaybackMode.UntilDone)
+        music.play(music.createSong(assets.song`TITLE intro1`), music.PlaybackMode.UntilDone)
         pressA = true
-        music.play(music.createSong(assets.song`TITLE`), music.PlaybackMode.LoopingInBackground)
+        music.play(music.createSong(assets.song`TITLE2`), music.PlaybackMode.LoopingInBackground)
     })
-    level = 2
+    level = 1
     fallHit = false
     scene.setBackgroundColor(8)
     tiles.setCurrentTilemap(tilemap`cutsceneLevel`)
@@ -287,10 +287,10 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
                 )
             }
             timer.after((assets.animation`Player_Throw`.length - 3) * 100, function () {
-                carryBox.y += 8
                 carryBox.setFlag(SpriteFlag.AutoDestroy, true)
-                carryBox.setFlag(SpriteFlag.DestroyOnWall, true)
-                carryBox.vx = direction * 400
+                carryBox.setFlag(SpriteFlag.DestroyOnWall, false)
+                sprites.setDataNumber(carryBox, "boxDirection", direction)
+                carryBox.vx = sprites.readDataNumber(carryBox, "boxDirection") * 400
                 carryBox.setKind(SpriteKind.boxDestroyer)
                 animation.runImageAnimation(
                 carryBox,
@@ -298,6 +298,8 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
                 50,
                 true
                 )
+                carryBox.x += -3
+                carryBox.y += -1
             })
             timer.after(assets.animation`Player_Throw`.length * 100, function () {
                 characterAnimations.setCharacterAnimationsEnabled(playerCharacter, true)
@@ -533,7 +535,7 @@ function Start (level: number) {
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
         timer.background(function () {
             music.play(music.createSong(assets.song`PV intro`), music.PlaybackMode.UntilDone)
-            music.play(music.createSong(assets.song`Pitfell Valley`), music.PlaybackMode.LoopingInBackground)
+            music.play(music.createSong(assets.song`Pitfell Valley0`), music.PlaybackMode.LoopingInBackground)
         })
     } else if (level == 2) {
         timer.after(300, function () {
@@ -603,7 +605,7 @@ function die () {
     playerCharacter.setFlag(SpriteFlag.AutoDestroy, true)
     playerCharacter.setFlag(SpriteFlag.GhostThroughWalls, true)
     timer.background(function () {
-        music.play(music.createSong(assets.song`Dead`), music.PlaybackMode.UntilDone)
+        music.play(music.createSong(assets.song`Dead1`), music.PlaybackMode.UntilDone)
         timer.after(1500, function () {
             Start(level)
         })
@@ -627,18 +629,21 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     }
 })
 scene.onHitWall(SpriteKind.boxDestroyer, function (sprite, location) {
-    if (sprite.isHittingTile(CollisionDirection.Right) && sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`)) {
+    if (!(sprite.isHittingTile(CollisionDirection.Left) || sprite.isHittingTile(CollisionDirection.Right))) {
+        poofs(sprite, true, 4, 4)
         sprites.destroy(sprite)
-        tiles.setTileAt(tiles.getTileLocation(location.column, location.row), assets.tile`transparency16`)
-        tiles.setWallAt(tiles.getTileLocation(location.column, location.row), false)
-        crateFly(tiles.getTileLocation(location.column, location.row), 1)
-    } else if (sprite.isHittingTile(CollisionDirection.Left) && sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`)) {
-        sprites.destroy(sprite)
-        tiles.setTileAt(tiles.getTileLocation(location.column, location.row), assets.tile`transparency16`)
-        tiles.setWallAt(tiles.getTileLocation(location.column, location.row), false)
-        crateFly(tiles.getTileLocation(location.column, location.row), -1)
     }
 })
+function boxDestroy (sprite: Sprite, location: tiles.Location) {
+    if (sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`)) {
+        tiles.setTileAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), assets.tile`transparency16`)
+        tiles.setWallAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), false)
+        crateFly(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), sprites.readDataNumber(sprite, "boxDirection"))
+        tiles.setTileAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), assets.tile`transparency16`)
+        tiles.setWallAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), false)
+        crateFly(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), sprites.readDataNumber(sprite, "boxDirection"))
+    }
+}
 function deleteEVERYTHING () {
     sprites.destroyAllSpritesOfKind(SpriteKind.Player)
     sprites.destroyAllSpritesOfKind(SpriteKind.Text)
@@ -964,6 +969,9 @@ game.onUpdate(function () {
             buggerBehaviour.vx = -20
             sprites.setDataNumber(buggerBehaviour, "direction", -1)
         }
+    }
+    for (let boxKiller of sprites.allOfKind(SpriteKind.boxDestroyer)) {
+        boxDestroy(boxKiller, boxKiller.tilemapLocation())
     }
     sprites.destroy(textSprite)
     sprites.destroy(textSprite2)

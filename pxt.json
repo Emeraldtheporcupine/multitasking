@@ -8,7 +8,8 @@
         "Timers": "github:microsoft/arcade-timers#v1.1.0",
         "arcade-sprite-data": "github:microsoft/arcade-sprite-data#v0.2.1",
         "arcade-text": "github:microsoft/arcade-text#v1.3.0",
-        "Color Fading": "github:jwunderl/pxt-color#v0.2.3"
+        "Color Fading": "github:jwunderl/pxt-color#v0.2.3",
+        "arcade-custom-instruments": "github:riknoll/arcade-custom-instruments#6f81814d7d77a1ac7b97e4d631cbbc3654f2ec64"
     },
     "files": [
         "main.blocks",
