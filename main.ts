@@ -298,8 +298,7 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
                 50,
                 true
                 )
-                carryBox.x += -3
-                carryBox.y += -1
+                carryBox.y += -5
             })
             timer.after(assets.animation`Player_Throw`.length * 100, function () {
                 characterAnimations.setCharacterAnimationsEnabled(playerCharacter, true)
@@ -636,12 +635,9 @@ scene.onHitWall(SpriteKind.boxDestroyer, function (sprite, location) {
 })
 function boxDestroy (sprite: Sprite, location: tiles.Location) {
     if (sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`)) {
-        tiles.setTileAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), assets.tile`transparency16`)
         tiles.setWallAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), false)
+        tiles.setTileAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), assets.tile`transparency16`)
         crateFly(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row), sprites.readDataNumber(sprite, "boxDirection"))
-        tiles.setTileAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), assets.tile`transparency16`)
-        tiles.setWallAt(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), false)
-        crateFly(tiles.getTileLocation(location.column + sprites.readDataNumber(sprite, "boxDirection"), location.row + 1), sprites.readDataNumber(sprite, "boxDirection"))
     }
 }
 function deleteEVERYTHING () {
@@ -972,6 +968,9 @@ game.onUpdate(function () {
     }
     for (let boxKiller of sprites.allOfKind(SpriteKind.boxDestroyer)) {
         boxDestroy(boxKiller, boxKiller.tilemapLocation())
+        if (Math.abs(boxKiller.vx) != 400) {
+            boxKiller.vx = sprites.readDataNumber(boxKiller, "boxDirection") * 400
+        }
     }
     sprites.destroy(textSprite)
     sprites.destroy(textSprite2)
