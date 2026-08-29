@@ -628,7 +628,7 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     }
 })
 scene.onHitWall(SpriteKind.boxDestroyer, function (sprite, location) {
-    if (!(sprite.isHittingTile(CollisionDirection.Left) || sprite.isHittingTile(CollisionDirection.Right))) {
+    if (!(sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`))) {
         poofs(sprite, true, 4, 4)
         sprites.destroy(sprite)
     }
@@ -798,7 +798,7 @@ color.setPalette(
 color.originalPalette
 )
 playerControl = false
-title()
+Start(2)
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
