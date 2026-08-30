@@ -4,13 +4,11 @@ namespace SpriteKind {
     export const showCutscene = SpriteKind.create()
     export const boxDestroyer = SpriteKind.create()
 }
-/**
- * FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
- * 
- * Level 1 = 86 sec.
- * 
- * Level 2
- */
+// FASTEST TIMES DESTROYING EVERYTHING (crates, enemies, etc.)
+// 
+// Level 1 = 86 sec.
+// 
+// Level 2
 function title () {
     cutsceneColors()
     titleScreen = true
@@ -207,6 +205,10 @@ scene.onHitWall(SpriteKind.Player, function (sprite, location) {
     if (sprite.isHittingTile(CollisionDirection.Bottom)) {
         invincible = false
         flinging = false
+        if (playerCharacter.tilemapLocation().row == tileUtil.tilemapProperty(currentLevelTilemap, tileUtil.TilemapProperty.Rows) - 1 && playerControl) {
+            playerControl = false
+            die()
+        }
     }
 })
 function createFlipped (anim: Image[]) {
@@ -220,8 +222,8 @@ function createFlipped (anim: Image[]) {
 }
 function createRecolor (anim: Image[]) {
     tempList = []
-    for (let Frame = 0; Frame <= anim.length - 1; Frame++) {
-        tempImage = anim[Frame]
+    for (let Frame2 = 0; Frame2 <= anim.length - 1; Frame2++) {
+        tempImage = anim[Frame2]
         tempImage.replace(1, 2)
         tempList.push(tempImage)
     }
@@ -532,6 +534,7 @@ function Start (level: number) {
     invincible = false
     if (level == 1) {
         tiles.setCurrentTilemap(tilemap`PitfellValley`)
+        currentLevelTilemap = tilemap`PitfellValley`
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(47, 0))
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 13))
         timer.background(function () {
@@ -545,6 +548,7 @@ function Start (level: number) {
             color.setColor(8, color.parseColorString("#71b4e3"))
         })
         tiles.setCurrentTilemap(tilemap`ArgonPeaks`)
+        currentLevelTilemap = tilemap`ArgonPeaks`
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 27))
         timer.background(function () {
             music.play(music.createSong(assets.song`AP intro`), music.PlaybackMode.UntilDone)
@@ -782,6 +786,7 @@ let carryingBox = false
 let newLocation: tiles.Location = null
 let tempImage: Image = null
 let tempList: Image[] = []
+let currentLevelTilemap: tiles.TileMapData = null
 let flinging = false
 let invincible = false
 let direction = 0
