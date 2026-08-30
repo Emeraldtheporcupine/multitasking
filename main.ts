@@ -270,7 +270,7 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
     if (titleScreen == false && playerControl == true) {
         newLocation = tiles.getTileLocation(playerCharacter.tilemapLocation().column + direction, playerCharacter.tilemapLocation().row)
         if (carryingBox == true) {
-            carryingBox = false
+            invincible = false
             if (direction == 1) {
                 animation.runImageAnimation(
                 playerCharacter,
@@ -301,11 +301,13 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
                 carryBox.y += -5
             })
             timer.after(assets.animation`Player_Throw`.length * 100, function () {
+                carryingBox = false
                 characterAnimations.setCharacterAnimationsEnabled(playerCharacter, true)
             })
         } else if (carryingBox == false) {
             if (tiles.tileAtLocationIsWall(newLocation) && tiles.tileAtLocationEquals(newLocation, assets.tile`myTile9`)) {
                 carryingBox = true
+                invincible = true
                 playerCharacter.vx = 0
                 tiles.setWallAt(newLocation, false)
                 tiles.setTileAt(newLocation, assets.tile`transparency16`)
@@ -540,7 +542,7 @@ function Start (level: number) {
         timer.after(300, function () {
             color.setColor(6, color.parseColorString("#f0f0f0"))
             color.setColor(10, color.parseColorString("#4E4141"))
-            color.setColor(8, color.parseColorString("#71b4e3"), 250)
+            color.setColor(8, color.parseColorString("#71b4e3"))
         })
         tiles.setCurrentTilemap(tilemap`ArgonPeaks`)
         tiles.placeOnTile(playerCharacter, tiles.getTileLocation(0, 27))
@@ -606,7 +608,10 @@ function die () {
     timer.background(function () {
         music.play(music.createSong(assets.song`Dead1`), music.PlaybackMode.UntilDone)
         timer.after(1500, function () {
-            Start(level)
+            color.startFadeFromCurrent(color.Black, 250)
+            timer.after(250, function () {
+                Start(level)
+            })
         })
     })
 }
@@ -786,9 +791,9 @@ let newSprite: Sprite = null
 let cutsceneBatSprite: Sprite = null
 let cutscenePlayer: Sprite = null
 let fallHit = false
-let level = 0
 let pressA = false
 let titleScreen = false
+let level = 0
 let playerControl = false
 namespace userconfig {
     export const ARCADE_SCREEN_WIDTH = 240
@@ -798,7 +803,8 @@ color.setPalette(
 color.originalPalette
 )
 playerControl = false
-Start(2)
+level = 2
+Start(level)
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
