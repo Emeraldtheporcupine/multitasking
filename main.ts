@@ -639,7 +639,12 @@ scene.onHitWall(SpriteKind.fallingCrate, function (sprite, location) {
     }
 })
 scene.onHitWall(SpriteKind.boxDestroyer, function (sprite, location) {
-    if (!(sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`))) {
+    if (sprite.tileKindAt(TileDirection.Left, assets.tile`myTile28`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile28`)) {
+        tiles.setTileAt(tiles.getTileLocation(0, 0), assets.tile`transparency16`)
+        tiles.setWallAt(tiles.getTileLocation(0, 0), false)
+        poofs(sprite, true, 4, 4)
+        sprites.destroy(sprite)
+    } else if (!(sprite.tileKindAt(TileDirection.Left, assets.tile`myTile9`) || sprite.tileKindAt(TileDirection.Right, assets.tile`myTile9`))) {
         poofs(sprite, true, 4, 4)
         sprites.destroy(sprite)
     }
@@ -811,7 +816,7 @@ color.originalPalette
 )
 playerControl = false
 level = 2
-Start(level)
+title()
 game.onUpdate(function () {
     if (playerControl == true) {
         if (invincible == false) {
