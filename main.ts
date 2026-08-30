@@ -494,8 +494,10 @@ controller.A.onEvent(ControllerButtonEvent.Pressed, function () {
             } else {
                 if (playerControl == true) {
                     if (runningUp == false) {
-                        revving = true
-                        music.play(music.createSoundEffect(WaveShape.Noise, 1730, 3353, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                        if (playerCharacter.vy == 0) {
+                            revving = true
+                            music.play(music.createSoundEffect(WaveShape.Noise, 1730, 3353, 255, 0, 500, SoundExpressionEffect.Tremolo, InterpolationCurve.Logarithmic), music.PlaybackMode.InBackground)
+                        }
                     }
                 }
             }
