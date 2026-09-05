@@ -982,6 +982,12 @@ game.onUpdate(function () {
         } else if ((!(tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column + 1, buggerBehaviour.tilemapLocation().row + 1))) || tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column + 1, buggerBehaviour.tilemapLocation().row))) && sprites.readDataNumber(buggerBehaviour, "direction") == 1) {
             buggerBehaviour.vx = -20
             sprites.setDataNumber(buggerBehaviour, "direction", -1)
+        } else if ((!(tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column - 1, buggerBehaviour.tilemapLocation().row + 1))) || tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column - 1, buggerBehaviour.tilemapLocation().row))) && (!(tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column + 1, buggerBehaviour.tilemapLocation().row + 1))) || tiles.tileAtLocationIsWall(tiles.getTileLocation(buggerBehaviour.tilemapLocation().column + 1, buggerBehaviour.tilemapLocation().row)))) {
+            if (buggerBehaviour.vy == 0) {
+                sprites.setDataNumber(buggerBehaviour, "direction", sprites.readDataNumber(buggerBehaviour, "direction") * -1)
+                buggerBehaviour.vx = sprites.readDataNumber(buggerBehaviour, "direction") * 20
+                buggerBehaviour.vy = -200
+            }
         }
     }
     for (let boxKiller of sprites.allOfKind(SpriteKind.boxDestroyer)) {
